@@ -35,7 +35,8 @@ async def start_handler(message: types.Message):
             ]
         )
 
-        await message.answer(f"Здравствуйте, {name}, Вас приветствует бот чайханы 'Нават!' Наш бот обслуживает уже {count} пользователя.", reply_markup=kb)
+        await message.answer(f"Здравствуйте, {name}, Вас приветствует бот чайханы 'Нават!' "
+                             f"Наш бот обслуживает уже {count} пользователя.", reply_markup=kb)
 
 
 @start_router.callback_query(F.data == "address")
