@@ -28,11 +28,14 @@ async def start_handler(message: types.Message):
                 [
                     types.InlineKeyboardButton(text="О нас", callback_data="aboutus"),
                     types.InlineKeyboardButton(text="Наш сайт", url="https://navat.kg")
+                ],
+                [
+                    types.InlineKeyboardButton(text="Вакансии", callback_data="vacancies")
                 ]
             ]
         )
 
-        await message.answer(f"Привет, {name}, наш бот обслуживает уже {count} пользователя.")
+        await message.answer(f"Привет, {name}, наш бот обслуживает уже {count} пользователя.", reply_markup=kb)
 
 
 @start_router.callback_query(F.data == "address")
@@ -56,3 +59,7 @@ async def about_us_handler(callback: types.CallbackQuery):
     await callback.message.answer(text)
 
 
+@start_router.callback_query(F.data == "vacancies")
+async def about_us_handler(callback: types.CallbackQuery):
+    text = "Вакансии:\n1)Администратор\n2)Официант\n3)Повар\n4)Бармен"
+    await callback.message.answer(text)
