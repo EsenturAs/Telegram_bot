@@ -1,17 +1,11 @@
 import asyncio
-from aiogram import types, Bot, Dispatcher
-from dotenv import dotenv_values
 import logging
 
 
+from bot_config import bot, dp
 from handlers.start import start_router
 from handlers.random import random_router
 from handlers.myinfo import myinfo_router
-
-
-token = dotenv_values('.env')['BOT_TOKEN']
-bot = Bot(token=token)
-dp = Dispatcher()
 
 
 async def main():
@@ -24,4 +18,3 @@ async def main():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     asyncio.run(main())
-
