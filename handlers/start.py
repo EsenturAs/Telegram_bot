@@ -1,8 +1,5 @@
-import subprocess
-
 from aiogram import Router, types, F
 from aiogram.filters.command import Command
-import handlers.review_dialog
 
 
 start_router = Router()
@@ -45,7 +42,8 @@ async def start_handler(message: types.Message):
     )
 
     await message.answer(f"Здравствуйте, {name}, Вас приветствует бот чайханы 'Нават!' "
-                         f"Наш бот обслуживает уже {user_counter(str(message.from_user.id))} пользователя.", reply_markup=kb)
+                         f"Наш бот обслуживает уже {user_counter(str(message.from_user.id))} пользователя.",
+                         reply_markup=kb)
 
 
 @start_router.callback_query(F.data == "address")
