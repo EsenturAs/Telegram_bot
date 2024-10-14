@@ -77,4 +77,4 @@ async def about_us_handler(callback: types.CallbackQuery):
 
 @start_router.callback_query(F.data == "review")
 async def start_review_handler(callback: types.CallbackQuery):
-    await callback.message.answer_("/review")
+    await callback.message.answer("/review")
