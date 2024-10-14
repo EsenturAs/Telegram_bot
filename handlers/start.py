@@ -1,15 +1,14 @@
+import subprocess
+
 from aiogram import Router, types, F
 from aiogram.filters.command import Command
+import handlers.review_dialog
 
 
 start_router = Router()
 
 
-@start_router.message(Command("start"))
-async def start_handler(message: types.Message):
-
-    name = message.from_user.first_name
-    uid = str(message.from_user.id)
+def user_counter(uid):
     with open("ids.txt", "r") as read_file:
         ids = read_file.readline().split()
         if uid not in ids:
@@ -18,25 +17,35 @@ async def start_handler(message: types.Message):
             count = len(ids) + 1
         elif uid in ids:
             count = len(ids)
+        print(count)
+        return count
 
-        kb = types.InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    types.InlineKeyboardButton(text="Наш адрес", callback_data="address"),
-                    types.InlineKeyboardButton(text="Контакты", callback_data="contacts")
-                ],
-                [
-                    types.InlineKeyboardButton(text="О нас", callback_data="aboutus"),
-                    types.InlineKeyboardButton(text="Наш сайт", url="https://navat.kg")
-                ],
-                [
-                    types.InlineKeyboardButton(text="Вакансии", callback_data="vacancies")
-                ]
+
+@start_router.message(Command("start"))
+async def start_handler(message: types.Message):
+
+    name = message.from_user.first_name
+    kb = types.InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                types.InlineKeyboardButton(text="Наш адрес", callback_data="address"),
+                types.InlineKeyboardButton(text="Контакты", callback_data="contacts")
+            ],
+            [
+                types.InlineKeyboardButton(text="О нас", callback_data="aboutus"),
+                types.InlineKeyboardButton(text="Наш сайт", url="https://navat.kg")
+            ],
+            [
+                types.InlineKeyboardButton(text="Вакансии", callback_data="vacancies")
+            ],
+            [
+                types.InlineKeyboardButton(text="Оставить отзыв", callback_data="review")
             ]
-        )
+        ]
+    )
 
-        await message.answer(f"Здравствуйте, {name}, Вас приветствует бот чайханы 'Нават!' "
-                             f"Наш бот обслуживает уже {count} пользователя.", reply_markup=kb)
+    await message.answer(f"Здравствуйте, {name}, Вас приветствует бот чайханы 'Нават!' "
+                         f"Наш бот обслуживает уже {user_counter(str(message.from_user.id))} пользователя.", reply_markup=kb)
 
 
 @start_router.callback_query(F.data == "address")
@@ -64,3 +73,8 @@ async def about_us_handler(callback: types.CallbackQuery):
 async def about_us_handler(callback: types.CallbackQuery):
     text = "Вакансии:\n1)Администратор\n2)Официант\n3)Повар\n4)Бармен"
     await callback.message.answer(text)
+
+
+@start_router.callback_query(F.data == "review")
+async def start_review_handler(callback: types.CallbackQuery):
+    await callback.message.answer_("/review")
