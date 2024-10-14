@@ -71,8 +71,3 @@ async def about_us_handler(callback: types.CallbackQuery):
 async def about_us_handler(callback: types.CallbackQuery):
     text = "Вакансии:\n1)Администратор\n2)Официант\n3)Повар\n4)Бармен"
     await callback.message.answer(text)
-
-
-@start_router.callback_query(F.data == "review")
-async def start_review_handler(callback: types.CallbackQuery):
-    await callback.message.answer("/review")
