@@ -2,13 +2,15 @@ from aiogram import types, F, Router
 from aiogram.filters import Command
 from aiogram.filters.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
+from bot_config import database
+import sqlite3
 
 
 review_router = Router()
 
 
-def has_written_review(message: types.Message):
-    uid = str(message.from_user.id)
+def has_written_review(call: types.CallbackQuery):
+    uid = str(call.from_user.id)
     with open("reviews.txt", "r") as read_file:
         ids = read_file.readline().split()
         if uid not in ids:
@@ -19,7 +21,6 @@ def has_written_review(message: types.Message):
 
 
 class RestaurantReview(StatesGroup):
-    review_started = State()
     name = State()
     phone_number = State()
     food_rating = State()
@@ -27,14 +28,13 @@ class RestaurantReview(StatesGroup):
     extra_comments = State()
 
 
-@review_router.callback_query(F.data == "review")
-@review_router.message(Command("review"))
-async def review_handler(message: types.Message, state: FSMContext):
-    if has_written_review(message):
-        await message.answer("Вы уже оставили отзыв")
+@review_router.callback_query(lambda call: call.data == "review")
+async def review_handler(call: types.CallbackQuery, state: FSMContext):
+    if has_written_review(call):
+        await call.message.answer("Вы уже оставили отзыв")
     else:
         await state.set_state(RestaurantReview.name)
-        await message.answer("Как Вас зовут?")
+        await call.message.answer("Как Вас зовут?")
 
 
 @review_router.message(Command("stop"))
@@ -53,7 +53,11 @@ async def process_name(message: types.Message, state: FSMContext):
 
 @review_router.message(RestaurantReview.phone_number)
 async def process_phone_number(message: types.Message, state: FSMContext):
-    await state.update_data(phone_number=message.text)
+    phone_number = message.text
+    if not phone_number.isdigit():
+        await message.answer("Вводите только цифры")
+        return
+    await state.update_data(phone_number=phone_number)
     await state.set_state(RestaurantReview.food_rating)
     kb = types.ReplyKeyboardMarkup(
         keyboard=[
@@ -67,21 +71,28 @@ async def process_phone_number(message: types.Message, state: FSMContext):
         ],
         resize_keyboard=True,
     )
-    await message.answer("Какого Вы пола?", reply_markup=kb)
-    await message.answer("Как Вы оцениваете наши блюда?")
+    await message.answer("Как Вы оцениваете наши блюда?", reply_markup=kb)
 
 
 @review_router.message(RestaurantReview.food_rating)
 async def process_food_rating(message: types.Message, state: FSMContext):
-    await state.update_data(food_rating=message.text)
+    food_rating = message.text
+    if not food_rating.isdigit():
+        await message.answer("Вводите только цифры от 1 до 5")
+        return
+    await state.update_data(food_rating=food_rating)
     await state.set_state(RestaurantReview.cleanliness_rating)
     await message.answer("Как Вы оцениваете чистоту наших ресторанов?")
 
 
 @review_router.message(RestaurantReview.cleanliness_rating)
 async def process_cleanliness_rating(message: types.Message, state: FSMContext):
+    cleanliness_rating = message.text
+    if not cleanliness_rating.isdigit():
+        await message.answer("Вводите только цифры от 1 до 5")
+        return
     kb = types.ReplyKeyboardRemove()
-    await state.update_data(cleanliness_rating=message.text)
+    await state.update_data(cleanliness_rating=cleanliness_rating)
     await state.set_state(RestaurantReview.extra_comments)
     await message.answer("Пожалуйста напишите комментарии или жалобы", reply_markup=kb)
 
@@ -89,6 +100,16 @@ async def process_cleanliness_rating(message: types.Message, state: FSMContext):
 @review_router.message(RestaurantReview.extra_comments)
 async def process_extra_comments(message: types.Message, state: FSMContext):
     await state.update_data(extra_comments=message.text)
+    data = await state.get_data()
+    sql = f"""
+        INSERT INTO review_results (name, phone_number, food_rating, cleanliness_rating, extra_comments, tg_id) VALUES 
+        ('{data["name"]}', '{data["phone_number"]}', '{data["food_rating"]}', '{data["cleanliness_rating"]}', '{data["extra_comments"]}', '{message.from_user.id}')
+        """
+    print(sql)
+    with sqlite3.connect(database) as connection:
+        cursor = connection.cursor()
+        cursor.execute(sql)
+
     await state.clear()
     with open("reviews.txt", "a") as a_file:
         a_file.write(f" {str(message.from_user.id)}")
