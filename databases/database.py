@@ -3,6 +3,7 @@ import sqlite3
 
 # connection = sqlite3.connect('db.sqlite')
 class Database:
+
     def __init__(self, path: str):
         self.path = path
 
@@ -19,4 +20,9 @@ class Database:
                 )
             """)
 
+            connection.commit()
+
+    def execution(self, sql):
+        with sqlite3.connect(self.path) as connection:
+            connection.execute(sql)
             connection.commit()

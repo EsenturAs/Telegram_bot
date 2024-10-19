@@ -6,3 +6,4 @@ token = dotenv_values(".env")["BOT_TOKEN"]
 bot = Bot(token=token)
 dp = Dispatcher()
 database = Database("databases/reviews.db")
+admin_id = int(dotenv_values(".env")["ADMIN_ID"])
