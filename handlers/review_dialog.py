@@ -3,7 +3,6 @@ from aiogram.filters import Command
 from aiogram.filters.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from bot_config import database
-import sqlite3
 
 
 review_router = Router()
@@ -77,7 +76,7 @@ async def process_phone_number(message: types.Message, state: FSMContext):
 @review_router.message(RestaurantReview.food_rating)
 async def process_food_rating(message: types.Message, state: FSMContext):
     food_rating = message.text
-    if not food_rating.isdigit():
+    if not food_rating.isdigit() or (int(food_rating) < 1 or int(food_rating) > 5):
         await message.answer("Вводите только цифры от 1 до 5")
         return
     await state.update_data(food_rating=food_rating)
@@ -88,7 +87,7 @@ async def process_food_rating(message: types.Message, state: FSMContext):
 @review_router.message(RestaurantReview.cleanliness_rating)
 async def process_cleanliness_rating(message: types.Message, state: FSMContext):
     cleanliness_rating = message.text
-    if not cleanliness_rating.isdigit():
+    if not cleanliness_rating.isdigit()  or (int(cleanliness_rating) < 1 or int(cleanliness_rating) > 5):
         await message.answer("Вводите только цифры от 1 до 5")
         return
     kb = types.ReplyKeyboardRemove()
@@ -105,10 +104,7 @@ async def process_extra_comments(message: types.Message, state: FSMContext):
         INSERT INTO review_results (name, phone_number, food_rating, cleanliness_rating, extra_comments, tg_id) VALUES 
         ('{data["name"]}', '{data["phone_number"]}', '{data["food_rating"]}', '{data["cleanliness_rating"]}', '{data["extra_comments"]}', '{message.from_user.id}')
         """
-    print(sql)
-    with sqlite3.connect(database) as connection:
-        cursor = connection.cursor()
-        cursor.execute(sql)
+    database.execution(sql)
 
     await state.clear()
     with open("reviews.txt", "a") as a_file:

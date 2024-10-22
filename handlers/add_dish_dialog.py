@@ -97,6 +97,8 @@ async def process_confirmation_yes(message: types.Message, state: FSMContext):
 
 @add_dish_router.message(NewDish.confirmation, F.text == "Нет")
 async def process_confirmaton_no(message: types.Message, state: FSMContext):
-    await state.clear()
     kb = types.ReplyKeyboardRemove()
-    await message.answer("Данные не сохранены", reply_markup=kb)
+    # await state.clear()
+    # await message.answer("Данные не сохранены", reply_markup=kb)
+    await state.set_state(NewDish.name)
+    await message.answer("Название нового блюда", reply_markup=kb)
