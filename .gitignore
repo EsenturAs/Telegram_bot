@@ -180,4 +180,4 @@ pyrightconfig.json
 
 *.sqlite
 *.sqlite3
-databases/reviews.db
+databases/restaurant_data.db

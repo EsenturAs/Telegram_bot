@@ -5,5 +5,5 @@ from databases.database import Database
 token = dotenv_values(".env")["BOT_TOKEN"]
 bot = Bot(token=token)
 dp = Dispatcher()
-database = Database("databases/reviews.db")
+database = Database("databases/restaurant_data.db")
 admin_id = int(dotenv_values(".env")["ADMIN_ID"])

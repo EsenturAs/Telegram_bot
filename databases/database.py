@@ -25,6 +25,7 @@ class Database:
                     name TEXT,
                     price INTEGER,
                     category TEXT
+                    )
             """)
 
             connection.commit()
@@ -33,3 +34,10 @@ class Database:
         with sqlite3.connect(self.path) as connection:
             connection.execute(sql)
             connection.commit()
+
+    def fetch(self, sql):
+        with sqlite3.connect(self.path) as connection:
+            cursor = connection.cursor()
+            cursor.execute(sql)
+            data = cursor.fetchall()
+            return data

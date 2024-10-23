@@ -9,9 +9,10 @@ from handlers.random import random_router
 from handlers.myinfo import myinfo_router
 from handlers.review_dialog import review_router
 from handlers.add_dish_dialog import add_dish_router
+from handlers.dishes import dishes_router
 
 
-async def on_startup(bot: Bot):
+async def on_startup():
     print("Бот запустился")
     database.create_tables()
 
@@ -22,6 +23,8 @@ async def main():
     dp.include_router(myinfo_router)
     dp.include_router(review_router)
     dp.include_router(add_dish_router)
+    dp.include_router(dishes_router)
+    await on_startup()
     await dp.start_polling(bot)
 
 
