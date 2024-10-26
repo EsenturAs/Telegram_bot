@@ -8,15 +8,24 @@ from bot_config import database
 review_router = Router()
 
 
-def has_written_review(call: types.CallbackQuery):
+# def has_written_review(call: types.CallbackQuery):
+#     uid = str(call.from_user.id)
+#     with open("reviews.txt", "r") as read_file:
+#         ids = read_file.readline().split()
+#         if uid not in ids:
+#             toggle = False
+#         elif uid in ids:
+#             toggle = True
+#     return toggle
+
+
+def has_written_review(call: types.CallbackQuery):      # using database
     uid = str(call.from_user.id)
-    with open("reviews.txt", "r") as read_file:
-        ids = read_file.readline().split()
-        if uid not in ids:
-            toggle = False
-        elif uid in ids:
-            toggle = True
-    return toggle
+    sql = f"""SELECT tg_id FROM review_results WHERE tg_id = {uid}"""
+    if len(database.fetch(sql)) > 0:
+        return True
+    else:
+        return False
 
 
 class RestaurantReview(StatesGroup):
@@ -25,6 +34,7 @@ class RestaurantReview(StatesGroup):
     food_rating = State()
     cleanliness_rating = State()
     extra_comments = State()
+    confirmation = State()
 
 
 @review_router.callback_query(lambda call: call.data == "review")
@@ -99,14 +109,44 @@ async def process_cleanliness_rating(message: types.Message, state: FSMContext):
 @review_router.message(RestaurantReview.extra_comments)
 async def process_extra_comments(message: types.Message, state: FSMContext):
     await state.update_data(extra_comments=message.text)
+    kb = types.ReplyKeyboardMarkup(
+        keyboard=[
+            [
+                types.KeyboardButton(text="Да"),
+                types.KeyboardButton(text="Нет")
+            ]
+        ],
+        resize_keyboard=True
+    )
+
+    data = await state.get_data()
+    print(data)
+    await state.set_state(RestaurantReview.confirmation)
+    await message.answer("Сохранить данные?", reply_markup=kb)
+
+
+@review_router.message(RestaurantReview.confirmation, F.text == "Да")
+async def process_confirmation_yes(message: types.Message, state: FSMContext):
     data = await state.get_data()
     sql = f"""
-        INSERT INTO review_results (name, phone_number, food_rating, cleanliness_rating, extra_comments, tg_id) VALUES 
-        ('{data["name"]}', '{data["phone_number"]}', '{data["food_rating"]}', '{data["cleanliness_rating"]}', '{data["extra_comments"]}', '{message.from_user.id}')
-        """
+            INSERT INTO review_results (name, phone_number, food_rating, cleanliness_rating, extra_comments, tg_id) VALUES 
+            ('{data["name"]}', 
+            '{data["phone_number"]}', 
+            '{data["food_rating"]}', 
+            '{data["cleanliness_rating"]}', 
+            '{data["extra_comments"]}', 
+            '{message.from_user.id}'
+            )
+            """
     database.execution(sql)
-
+    kb = types.ReplyKeyboardRemove()
+    database.execution(sql)
+    await message.answer("Спасибо за пройденный отпрос", reply_markup=kb)
     await state.clear()
-    with open("reviews.txt", "a") as a_file:
-        a_file.write(f" {str(message.from_user.id)}")
-    await message.answer("Спасибо за пройденный отпрос")
+
+
+@review_router.message(RestaurantReview.confirmation, F.text == "Нет")
+async def process_confirmaton_no(message: types.Message, state: FSMContext):
+    kb = types.ReplyKeyboardRemove()
+    await state.set_state(RestaurantReview.name)
+    await message.answer("Как Вас зовут?", reply_markup=kb)

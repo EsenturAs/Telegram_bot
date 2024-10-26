@@ -56,6 +56,15 @@ async def process_price(message: types.Message, state: FSMContext):
     await state.update_data(price=price)
     await state.set_state(NewDish.category)
     await message.answer("Категория нового блюда")
+    sql = """
+    SELECT * FROM dish_categories
+    """
+    categories = database.fetch(sql)
+    print(categories)
+    categories_str = ""
+    for cat in categories:
+        categories_str += f"{cat[0]}. {cat[1]}\n"
+    await message.answer(f"Категории:\n{categories_str}")
 
 
 @add_dish_router.message(NewDish.category)
@@ -74,7 +83,11 @@ async def process_name(message: types.Message, state: FSMContext):
     data = await state.get_data()
     print(data)
     await state.set_state(NewDish.confirmation)
-    await message.answer(f"Название: {data["name"]}\nЦена: {data["price"]}\nКатегория: {data["category"]}")
+    sql = f"""
+    SELECT name FROM dish_categories WHERE id = '{data["category"]}'
+    """
+    category = database.fetch(sql)[0][0]
+    await message.answer(f"Название: {data["name"]}\nЦена: {data["price"]}\nКатегория: {category}")
     await message.answer("Сохранить данные?", reply_markup=kb)
 
 
@@ -83,10 +96,10 @@ async def process_confirmation_yes(message: types.Message, state: FSMContext):
     data = await state.get_data()
     # await state.update_data(confirm=NewDish.confirmation)
     sql = f"""
-        INSERT INTO dishes (name, price, category) VALUES (
+        INSERT INTO dishes (name, price, category_id) VALUES (
         '{data["name"]}',
         '{data["price"]}',
-        '{data["category"]}'
+        {data["category"]}
         )
     """
     kb = types.ReplyKeyboardRemove()

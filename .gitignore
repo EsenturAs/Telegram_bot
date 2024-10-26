@@ -181,3 +181,5 @@ pyrightconfig.json
 *.sqlite
 *.sqlite3
 databases/restaurant_data.db
+ids.txt
+reviews.txt

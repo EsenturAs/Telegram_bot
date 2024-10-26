@@ -11,7 +11,6 @@ async def dishes_handler(call: types.CallbackQuery):
     sql = """
     SELECT * FROM dishes ORDER BY price DESC
     """
-
     data = database.fetch(sql)
     counter = 1
     await call.message.answer("Список блюд:")
