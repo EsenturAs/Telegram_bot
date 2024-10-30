@@ -34,7 +34,7 @@ async def start_handler(message: types.Message):
     kb = types.InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                types.InlineKeyboardButton(text="Посмотреть блюда", callback_data="dishes")
+                types.InlineKeyboardButton(text="Список блюд", callback_data="dishes")
             ],
             [
                 types.InlineKeyboardButton(text="Наш адрес", callback_data="address"),
